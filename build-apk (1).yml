@@ -1,0 +1,523 @@
+# KU Education Hub - Android app (by Maxwell Paul Odhiambo, 0728217318)
+# This ONE file creates the whole app and builds the APK on GitHub.
+# Put it in your repository at:  .github/workflows/build-apk.yml
+
+name: Build Android app
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the app files
+        shell: bash
+        run: |
+          cat > settings.gradle <<'ENDOFFILE'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "KUEducationHub"
+          include ':app'
+          ENDOFFILE
+          cat > build.gradle <<'ENDOFFILE'
+          plugins {
+              id 'com.android.application' version '8.9.1' apply false
+          }
+          ENDOFFILE
+          cat > gradle.properties <<'ENDOFFILE'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          ENDOFFILE
+          mkdir -p app
+          cat > app/build.gradle <<'ENDOFFILE'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'ke.maxwell.eduhub'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'ke.maxwell.eduhub'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          ENDOFFILE
+          mkdir -p app/src/main
+          cat > app/src/main/AndroidManifest.xml <<'ENDOFFILE'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+              <queries>
+                  <intent>
+                      <action android:name="android.intent.action.VIEW" />
+                      <data android:scheme="https" />
+                  </intent>
+                  <intent>
+                      <action android:name="android.intent.action.SENDTO" />
+                      <data android:scheme="sms" />
+                  </intent>
+                  <intent>
+                      <action android:name="android.intent.action.VIEW" />
+                      <data android:scheme="sms" />
+                  </intent>
+                  <intent>
+                      <action android:name="android.intent.action.DIAL" />
+                  </intent>
+                  <package android:name="com.whatsapp" />
+                  <package android:name="com.whatsapp.w4b" />
+              </queries>
+
+              <application
+                  android:allowBackup="true"
+                  android:icon="@drawable/ic_launcher"
+                  android:roundIcon="@drawable/ic_launcher"
+                  android:label="@string/app_name"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="false"
+                  android:hardwareAccelerated="true">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+                      android:launchMode="singleTask"
+                      android:windowSoftInputMode="adjustResize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          ENDOFFILE
+          mkdir -p app/src/main/res/values
+          cat > app/src/main/res/values/strings.xml <<'ENDOFFILE'
+          <resources>
+              <string name="app_name">KU Education Hub</string>
+          </resources>
+          ENDOFFILE
+          mkdir -p app/src/main/res/values
+          cat > app/src/main/res/values/colors.xml <<'ENDOFFILE'
+          <resources>
+              <color name="navy">#0F2D6B</color>
+              <color name="navy_dark">#0A1A45</color>
+              <color name="gold">#F5B800</color>
+          </resources>
+          ENDOFFILE
+          mkdir -p app/src/main/res/values
+          cat > app/src/main/res/values/styles.xml <<'ENDOFFILE'
+          <resources>
+              <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:colorPrimary">@color/navy</item>
+                  <item name="android:colorPrimaryDark">@color/navy_dark</item>
+                  <item name="android:colorAccent">@color/gold</item>
+                  <item name="android:statusBarColor">@color/navy_dark</item>
+                  <item name="android:navigationBarColor">@color/navy_dark</item>
+                  <item name="android:windowBackground">@color/navy_dark</item>
+              </style>
+          </resources>
+          ENDOFFILE
+          mkdir -p app/src/main/res/drawable
+          cat > app/src/main/res/drawable/ic_launcher.xml <<'ENDOFFILE'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="48dp" android:height="48dp"
+              android:viewportWidth="48" android:viewportHeight="48">
+              <path android:fillColor="#0F2D6B"
+                  android:pathData="M8,0h32a8,8 0,0 1,8 8v32a8,8 0,0 1,-8 8h-32a8,8 0,0 1,-8 -8v-32a8,8 0,0 1,8 -8z"/>
+              <path android:fillColor="#FFD45C" android:pathData="M24,14L9,12L9,34L24,36Z"/>
+              <path android:fillColor="#F5B800" android:pathData="M24,14L39,12L39,34L24,36Z"/>
+              <path android:strokeColor="#0F2D6B" android:strokeWidth="1.5" android:strokeLineCap="round"
+                  android:pathData="M12,17L21,18.3M12,21.5L21,22.8M12,26L21,27.3M12,30.5L21,31.8M27,18.3L36,17M27,22.8L36,21.5M27,27.3L36,26M27,31.8L36,30.5"/>
+              <path android:strokeColor="#0A1A45" android:strokeWidth="1.2" android:pathData="M24,14L24,36"/>
+          </vector>
+          ENDOFFILE
+          mkdir -p app/src/main/java/ke/maxwell/eduhub
+          cat > app/src/main/java/ke/maxwell/eduhub/MainActivity.java <<'ENDOFFILE'
+          package ke.maxwell.eduhub;
+
+          import android.annotation.SuppressLint;
+          import android.app.Activity;
+          import android.app.DownloadManager;
+          import android.content.ActivityNotFoundException;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.graphics.Bitmap;
+          import android.graphics.Color;
+          import android.net.ConnectivityManager;
+          import android.net.NetworkInfo;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.os.Environment;
+          import android.os.Message;
+          import android.view.Gravity;
+          import android.view.View;
+          import android.view.ViewGroup;
+          import android.webkit.CookieManager;
+          import android.webkit.URLUtil;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceError;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.widget.Button;
+          import android.widget.FrameLayout;
+          import android.widget.LinearLayout;
+          import android.widget.ProgressBar;
+          import android.widget.TextView;
+          import android.widget.Toast;
+
+          /**
+           * KU School of Education Notes & Past Papers Hub.
+           * A full-screen WebView around the hub, with WhatsApp, SMS, phone and
+           * download links handed to the right Android apps.
+           */
+          public class MainActivity extends Activity {
+
+              /** The hub's address. Change this one line if the link ever changes. */
+              private static final String HUB_URL = "https://claude.ai/artifact/LALNc2FLkaKwpoaR6PVWaT";
+
+              private static final int NAVY_DARK = Color.parseColor("#0A1A45");
+              private static final int NAVY = Color.parseColor("#0F2D6B");
+              private static final int GOLD = Color.parseColor("#F5B800");
+
+              private WebView web;
+              private ProgressBar bar;
+              private LinearLayout offline;
+
+              @SuppressLint("SetJavaScriptEnabled")
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  FrameLayout root = new FrameLayout(this);
+                  root.setBackgroundColor(NAVY_DARK);
+
+                  web = new WebView(this);
+                  web.setBackgroundColor(NAVY_DARK);
+                  root.addView(web, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+                  bar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+                  bar.setMax(100);
+                  bar.setProgressTintList(android.content.res.ColorStateList.valueOf(GOLD));
+                  FrameLayout.LayoutParams bp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(4));
+                  bp.gravity = Gravity.TOP;
+                  root.addView(bar, bp);
+
+                  offline = buildOfflineView();
+                  root.addView(offline, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                  offline.setVisibility(View.GONE);
+
+                  setContentView(root);
+
+                  WebSettings s = web.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setDatabaseEnabled(true);
+                  s.setLoadWithOverviewMode(true);
+                  s.setUseWideViewPort(true);
+                  s.setMediaPlaybackRequiresUserGesture(false);
+                  s.setJavaScriptCanOpenWindowsAutomatically(true);
+                  s.setSupportMultipleWindows(true);
+                  s.setCacheMode(WebSettings.LOAD_DEFAULT);
+                  s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+                  s.setUserAgentString(s.getUserAgentString() + " KUEducationHub/1.0");
+
+                  CookieManager cm = CookieManager.getInstance();
+                  cm.setAcceptCookie(true);
+                  cm.setAcceptThirdPartyCookies(web, true);
+
+                  web.setWebViewClient(new HubClient());
+                  web.setWebChromeClient(new HubChrome());
+                  web.setDownloadListener((url, userAgent, contentDisposition, mimeType, length) ->
+                          download(url, userAgent, contentDisposition, mimeType));
+
+                  if (savedInstanceState != null) {
+                      web.restoreState(savedInstanceState);
+                  } else {
+                      openHub();
+                  }
+              }
+
+              private void openHub() {
+                  if (!isOnline()) {
+                      offline.setVisibility(View.VISIBLE);
+                      return;
+                  }
+                  offline.setVisibility(View.GONE);
+                  web.loadUrl(HUB_URL);
+              }
+
+              /** Links inside the hub: keep claude.ai in the app, send everything else to the right app. */
+              private boolean route(Uri uri) {
+                  if (uri == null) return false;
+                  String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+                  String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase();
+
+                  if (scheme.equals("http") || scheme.equals("https")) {
+                      boolean inApp = host.equals("claude.ai") || host.endsWith(".claude.ai")
+                              || host.endsWith("claudeusercontent.com") || host.endsWith("anthropic.com");
+                      if (inApp) return false;                       // stay inside the app
+                      return openExternal(new Intent(Intent.ACTION_VIEW, uri)); // wa.me, other sites
+                  }
+                  if (scheme.equals("sms") || scheme.equals("smsto")) {
+                      return openExternal(new Intent(Intent.ACTION_SENDTO, smsUri(uri)).putExtra("sms_body", smsBody(uri)));
+                  }
+                  if (scheme.equals("tel")) {
+                      return openExternal(new Intent(Intent.ACTION_DIAL, uri));
+                  }
+                  if (scheme.equals("whatsapp") || scheme.equals("mailto") || scheme.equals("geo")) {
+                      return openExternal(new Intent(Intent.ACTION_VIEW, uri));
+                  }
+                  if (scheme.equals("intent")) {
+                      try {
+                          Intent i = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME);
+                          return openExternal(i);
+                      } catch (Exception e) {
+                          return true;
+                      }
+                  }
+                  if (scheme.equals("blob") || scheme.equals("data") || scheme.equals("about") || scheme.equals("javascript")) {
+                      return false;
+                  }
+                  return openExternal(new Intent(Intent.ACTION_VIEW, uri));
+              }
+
+              /** sms:+2547..,+2547..?body=Hello  ->  smsto:+2547..;+2547.. */
+              private Uri smsUri(Uri uri) {
+                  String raw = uri.toString();
+                  String rest = raw.substring(raw.indexOf(':') + 1);
+                  if (rest.startsWith("/open?addresses=")) rest = rest.substring("/open?addresses=".length());
+                  int q = rest.indexOf('?');
+                  int amp = rest.indexOf('&');
+                  int cut = q >= 0 ? q : (amp >= 0 ? amp : rest.length());
+                  String numbers = Uri.decode(rest.substring(0, cut)).replace(",", ";");
+                  return Uri.parse("smsto:" + numbers);
+              }
+
+              private String smsBody(Uri uri) {
+                  String raw = uri.toString();
+                  int i = raw.indexOf("body=");
+                  if (i < 0) return "";
+                  String b = raw.substring(i + 5);
+                  int amp = b.indexOf('&');
+                  if (amp >= 0) b = b.substring(0, amp);
+                  return Uri.decode(b);
+              }
+
+              private boolean openExternal(Intent intent) {
+                  try {
+                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                      startActivity(intent);
+                  } catch (ActivityNotFoundException e) {
+                      Toast.makeText(this, "No app found to open this link", Toast.LENGTH_SHORT).show();
+                  }
+                  return true;
+              }
+
+              private void download(String url, String userAgent, String contentDisposition, String mimeType) {
+                  if (url == null) return;
+                  if (!url.startsWith("http")) {
+                      Toast.makeText(this, "Use the Download button inside the reader to save this file", Toast.LENGTH_LONG).show();
+                      return;
+                  }
+                  try {
+                      String name = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                      if (!name.toLowerCase().endsWith(".pdf") && (mimeType == null || mimeType.contains("pdf"))) name = name + ".pdf";
+                      DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url));
+                      String cookies = CookieManager.getInstance().getCookie(url);
+                      if (cookies != null) r.addRequestHeader("Cookie", cookies);
+                      r.addRequestHeader("User-Agent", userAgent);
+                      r.setMimeType(mimeType);
+                      r.setTitle(name);
+                      r.setDescription("KU Education Hub");
+                      r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                      r.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+                      DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                      dm.enqueue(r);
+                      Toast.makeText(this, "Downloading " + name + "…", Toast.LENGTH_SHORT).show();
+                  } catch (Exception e) {
+                      openExternal(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                  }
+              }
+
+              private class HubClient extends WebViewClient {
+                  @Override
+                  public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                      return route(request.getUrl());
+                  }
+
+                  @Override
+                  public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                      bar.setVisibility(View.VISIBLE);
+                  }
+
+                  @Override
+                  public void onPageFinished(WebView view, String url) {
+                      bar.setVisibility(View.GONE);
+                  }
+
+                  @Override
+                  public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                      if (request.isForMainFrame()) offline.setVisibility(View.VISIBLE);
+                  }
+              }
+
+              private class HubChrome extends WebChromeClient {
+                  @Override
+                  public void onProgressChanged(WebView view, int progress) {
+                      bar.setProgress(progress);
+                      bar.setVisibility(progress >= 100 ? View.GONE : View.VISIBLE);
+                  }
+
+                  /** window.open(...) from the hub (WhatsApp login message, SMS groups, PDFs). */
+                  @Override
+                  public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                      WebView temp = new WebView(MainActivity.this);
+                      temp.setWebViewClient(new WebViewClient() {
+                          @Override
+                          public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
+                              Uri u = req.getUrl();
+                              if (!route(u)) web.loadUrl(u.toString());
+                              v.destroy();
+                              return true;
+                          }
+                      });
+                      WebView.WebViewTransport t = (WebView.WebViewTransport) resultMsg.obj;
+                      t.setWebView(temp);
+                      resultMsg.sendToTarget();
+                      return true;
+                  }
+              }
+
+              private LinearLayout buildOfflineView() {
+                  LinearLayout box = new LinearLayout(this);
+                  box.setOrientation(LinearLayout.VERTICAL);
+                  box.setGravity(Gravity.CENTER);
+                  box.setBackgroundColor(NAVY_DARK);
+                  box.setPadding(dp(32), dp(32), dp(32), dp(32));
+
+                  TextView title = new TextView(this);
+                  title.setText("You're offline");
+                  title.setTextColor(GOLD);
+                  title.setTextSize(22);
+                  title.setGravity(Gravity.CENTER);
+                  box.addView(title);
+
+                  TextView msg = new TextView(this);
+                  msg.setText("Connect to the internet to open your notes and past papers.\n\nNeed help? Call Maxwell on 0728217318.");
+                  msg.setTextColor(Color.WHITE);
+                  msg.setTextSize(15);
+                  msg.setGravity(Gravity.CENTER);
+                  msg.setPadding(0, dp(12), 0, dp(20));
+                  box.addView(msg);
+
+                  Button retry = new Button(this);
+                  retry.setText("Try again");
+                  retry.setTextColor(NAVY);
+                  retry.setBackgroundColor(GOLD);
+                  retry.setAllCaps(false);
+                  retry.setOnClickListener(v -> openHub());
+                  box.addView(retry, new LinearLayout.LayoutParams(dp(180), dp(48)));
+                  return box;
+              }
+
+              private boolean isOnline() {
+                  ConnectivityManager c = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                  if (c == null) return true;
+                  NetworkInfo n = c.getActiveNetworkInfo();
+                  return n != null && n.isConnected();
+              }
+
+              private int dp(int v) {
+                  return Math.round(v * getResources().getDisplayMetrics().density);
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (offline.getVisibility() == View.VISIBLE) {
+                      super.onBackPressed();
+                  } else if (web.canGoBack()) {
+                      web.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+
+              @Override
+              protected void onSaveInstanceState(Bundle outState) {
+                  super.onSaveInstanceState(outState);
+                  web.saveState(outState);
+              }
+
+              @Override
+              protected void onPause() {
+                  super.onPause();
+                  web.onPause();
+                  CookieManager.getInstance().flush();
+              }
+
+              @Override
+              protected void onResume() {
+                  super.onResume();
+                  web.onResume();
+              }
+
+              @Override
+              protected void onDestroy() {
+                  if (web != null) web.destroy();
+                  super.onDestroy();
+              }
+          }
+          ENDOFFILE
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Build APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk KU-Education-Hub.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KU-Education-Hub-APK
+          path: KU-Education-Hub.apk
